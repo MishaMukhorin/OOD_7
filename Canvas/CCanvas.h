@@ -6,6 +6,8 @@
 #define OOP_4_CCANVAS_H
 
 #include <string>
+#include <memory>
+#include "SFML/Graphics.hpp"
 #include "../Interfaces/ICanvas.h"
 #include "../Interfaces/ICanvasDrowable.h"
 
@@ -19,22 +21,21 @@ public:
 
     CCanvas() { texture.create(WIDTH, HEIGHT); }
 
-    void DrawLine(CPoint from, CPoint to, Color lineColor) override;
+    void DrawLine(CPoint from, CPoint to, Color lineColor, float lineWidth) override;
 
     void FillPolygon(std::vector<CPoint> points, Color fillColor) override;
 
-    void DrawCircle(CPoint center, float radius, Color lineColor) override;
+    void DrawEllipse(CPoint center, float radiusX, float radiusY, Color lineColor, float lineWidth) override;
 
-    void FillCircle(CPoint center, float radius, Color fillColor) override;
+    void FillEllipse(CPoint center, float radiusX, float radiusY, Color fillColor) override;
 
     sf::RenderTexture& GetTexture();
 
-    void DrawShapesOnTexture(const std::vector<std::unique_ptr<ICanvasDrowable>> &shapes);
+    void DrawShapesOnTexture(const std::vector<std::shared_ptr<ICanvasDrowable>> &shapes);
 
 
 private:
-    sf::RenderTexture texture; // done настроить матрицу проецирования (cgcourse)
-    // done сделать хранение RenderTarget
+    sf::RenderTexture texture;
 
 };
 

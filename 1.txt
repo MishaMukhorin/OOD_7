@@ -1,0 +1,39 @@
+rectangle s1 0 0 1000 1000 00000000 00ffffff 2
+//fone
+//
+ellipse s2 -600 850 1100 1100 000000ff ffffffff 2
+//floor
+//
+ellipse s23 605 750 100 100 000000ff ffffffff 2
+ellipse s24 625 665 80 80 000000ff ffffffff 2
+ellipse s25 645 602 60 60 000000ff ffffffff 2
+//body
+triangle s31 690 668 710 675 670 700 000000ff ff8000ff 2
+//nose
+ellipse s32 680 645 8 8 00000000 000000ff 2
+ellipse s33 720 645 8 8 00000000 000000ff 2
+//eyes
+ellipse s34 700 885 10 10 000000ff 000000ff 2
+ellipse s35 700 821 10 10 000000ff 000000ff 2
+ellipse s36 700 760 10 10 000000ff 000000ff 2
+//buttons
+//snowman
+//
+rectangle s40 270 850 40 100 000000ff 964b00ff 2
+triangle s41 290 750 140 910 440 910 000000ff 177245ff 2
+triangle s42 290 650 160 810 420 810 000000ff 177245ff 2
+triangle s43 290 560 190 710 390 710 000000ff 177245ff 2
+//tree
+//
+ellipse s50 -500 -500 400 400 000000ff ffff00ff 5
+//sun
+//
+ellipse s65 580 220 80 80 000000ff ffffffff 3
+ellipse s66 820 220 80 80 000000ff ffffffff 3
+ellipse s67 700 200 100 100 000000ff ffffffff 3
+ellipse s68 580 220 80 80 00000000 ffffffff 2
+ellipse s69 820 220 80 80 00000000 ffffffff 2
+//cloud
+//
+render
+

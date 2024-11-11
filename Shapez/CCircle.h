@@ -9,43 +9,62 @@
 #include <utility>
 #include "../Interfaces/ISolidShape.h"
 #include "CPoint.h"
+#include "../Interfaces/IStyle.h"
+#include <memory>
 
-class CCircle : public ISolidShape {
+class CEllipse : public ISolidShape {
 public:
+    CEllipse(const CPoint& center,
+             float radiusX,
+             float radiusY,
+             std::shared_ptr<IStyle> strokeStyle,
+             std::shared_ptr<IStyle> fillStyle)
+            : m_center(center),
+              m_radiusX(radiusX),
+              m_radiusY(radiusY),
+              m_strokeStyle(std::move(strokeStyle)),
+              m_fillStyle(std::move(fillStyle)) {}
 
-    CCircle(const CPoint& center,
-            float radius,
-            Color strokeColor,
-            Color fillColor):
-            m_center({center.getX() - radius, center.getY() - radius}),
-            m_radius(radius),
-            m_strokeColor(strokeColor),
-            m_fillColor(fillColor) {}
+    [[nodiscard]] float GetArea() const override {
+        return M_PI * m_radiusX * m_radiusY;
+    }
 
-    [[nodiscard]] float GetArea() const override { return M_PI * m_radius * m_radius; }
-    [[nodiscard]] float GetPerimeter() const override { return 2.0 * M_PI * m_radius; }
+    void AddShape(const std::shared_ptr<IShape>& shape) override {};
 
-    [[nodiscard]] std::string ToString() const override
-    {
+    [[nodiscard]] float GetPerimeter() const override {
+        // Approximation using Ramanujan's first formula for ellipse perimeter
+        return M_PI * (3 * (m_radiusX + m_radiusY) - std::sqrt((3 * m_radiusX + m_radiusY) * (m_radiusX + 3 * m_radiusY)));
+    }
+
+    [[nodiscard]] std::string ToString() const override {
         std::stringstream ss;
-        ss << "Circle: (" << m_center.getX() << ", " << m_center.getY() << "), radius=" << m_radius << std::endl;
+        ss << "Ellipse: Center=(" << m_center.getX() << ", " << m_center.getY()
+           << "), radiusX=" << m_radiusX << ", radiusY=" << m_radiusY << std::endl;
         ss << ISolidShape::ToString();
         return ss.str();
     }
 
-    [[nodiscard]] Color GetStrokeColor() const override { return m_strokeColor; }
-    [[nodiscard]] Color GetFillColor() const override { return m_fillColor; }
+    [[nodiscard]] std::shared_ptr<IStyle> GetStrokeColor() const override {
+        return m_strokeStyle;
+    }
 
-    void Draw(ICanvas* canvas) const override
-    {
-        canvas->DrawCircle(m_center, m_radius, m_strokeColor);
-        canvas->FillCircle(m_center, m_radius, m_fillColor);
+    [[nodiscard]] std::shared_ptr<IStyle> GetFillColor() const override {
+        return m_fillStyle;
+    }
+
+    void Draw(ICanvas* canvas) const override {
+        canvas->DrawEllipse(m_center, m_radiusX, m_radiusY,
+                            m_strokeStyle->GetColor().value_or(Color("0")),
+                            m_strokeStyle->GetLineWidth().value_or(2));
+
+        canvas->FillEllipse(m_center, m_radiusX, m_radiusY, m_fillStyle->GetColor().value_or(Color("0")));
     }
 
 private:
     CPoint m_center;
-    float m_radius;
-    Color m_strokeColor, m_fillColor;
+    float m_radiusX, m_radiusY;
+    std::shared_ptr<IStyle> m_strokeStyle;
+    std::shared_ptr<IStyle> m_fillStyle;
 };
 
 #endif //OOP_4_CCIRCLE_H

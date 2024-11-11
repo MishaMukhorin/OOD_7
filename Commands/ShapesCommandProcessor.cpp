@@ -5,66 +5,100 @@
 
 using namespace std;
 
-void LineProcessor(vector<unique_ptr<ICanvasDrowable>>& shapes, vector<ISolidShape*>& solidShapes, const string& line)
-{
+void
+LineProcessor(std::map<std::string, shared_ptr<IShape>> &shapes, const string &line) {
     const string NUM = R"((\d+(?:\.\d+)?))";
     const string FLOATNUM = R"((-?\d+(?:\.\d+)?))";
     const string SPACE = R"(\s+)";
     const string POINT = FLOATNUM + SPACE + FLOATNUM;
     const string COLOR = R"(([0-9A-Fa-f]{8}))";
-    const string COLOROREMPTY = R"(([0-9A-Fa-f]{8}|))";
+    const string IDS = R"((?:([\w\d]+)/s)+)";
+    const string ID = R"(([\w\d]+))";
     vector<pair<regex, function<void(const smatch &match)>>> commandMap
-        {
-            {regex(R"(line\s+)" + POINT + SPACE + POINT + SPACE + COLOR),
-             [&shapes](const smatch &match)
-                {
-                    shapes.emplace_back(make_unique<CLineSegment>(CPoint(stof(match[1]), stof(match[2])),
-                                                                  CPoint(stof(match[3]), stof(match[4])),
-                                                                  Color(match[5])));
-                }},
-            {regex(R"(rectangle\s+)" + POINT + SPACE + NUM + SPACE + NUM + SPACE + COLOR + SPACE + COLOROREMPTY),
-             [&shapes, &solidShapes](const smatch &match)
-                {
-                    unique_ptr<CRectangle> rect = make_unique<CRectangle>(CPoint(stof(match[1]), stof(match[2])),
-                                                                          stof(match[3]),
-                                                                          stof(match[4]),
-                                                                          Color(match[5]),
-                                                                          Color(match[6]));
+            {
+                    {regex(R"(line\s+)" + ID + SPACE + POINT + SPACE + POINT + SPACE + COLOR + SPACE + NUM),
+                            [&shapes](const smatch &match) {
+                                shared_ptr<CLineSegment> line =
+                                        make_shared<CLineSegment>(CPoint(stof(match[2]), stof(match[3])),
+                                                                  CPoint(stof(match[4]), stof(match[5])),
+                                                                  make_shared<LineStyle>(Color(match[6]),
+                                                                                         stof(match[7])));
 
-                    solidShapes.emplace_back(rect.get());
-                    shapes.emplace_back(std::move(rect));
-                }},
-            {regex(R"(circle\s+)" + POINT + SPACE + NUM + SPACE + COLOR + SPACE + COLOROREMPTY),
-             [&shapes, &solidShapes](const smatch &match)
-                {
-                    unique_ptr<CCircle> circle = make_unique<CCircle>(CPoint(stof(match[1]), stof(match[2])),
-                                                    stof(match[3]),
-                                                    Color(match[4]),
-                                                    Color(match[5]));
+                                shapes.emplace(match[1], line);
+                            }},
+                            //rectangle s20 270 850 40 100 000000ff 964b00ff 2
+                    {regex(R"(rectangle\s+)" + ID + SPACE + POINT + SPACE + NUM + SPACE + NUM + SPACE + COLOR + SPACE
+                           + COLOR + SPACE + NUM),
+                            [&shapes](const smatch &match) {
+                                shared_ptr<CRectangle> rect =
+                                        make_shared<CRectangle>(CPoint(stof(match[2]), stof(match[3])),
+                                                                stof(match[4]),
+                                                                stof(match[5]),
+                                                                make_shared<LineStyle>(Color(match[6]),
+                                                                                       stof(match[8])),
+                                                                make_shared<FillStyle>(Color(match[7])));
 
-                    solidShapes.emplace_back(circle.get());
-                    shapes.emplace_back(std::move(circle));
-                }},
-            {regex(R"(triangle\s+)" + POINT + SPACE + POINT + SPACE + POINT + SPACE + COLOR + SPACE + COLOROREMPTY),
-             [&shapes, &solidShapes](const smatch &match)
-                {
-                    unique_ptr<CTriangle> triangle = make_unique<CTriangle>(CPoint(stof(match[1]), stof(match[2])),
-                                                      CPoint(stof(match[3]), stof(match[4])),
-                                                      CPoint(stof(match[5]), stof(match[6])),
-                                                      Color(match[7]),
-                                                      Color(match[8]));
-                    solidShapes.emplace_back(triangle.get());
-                    shapes.emplace_back(std::move(triangle));
-                }},
-            {regex(R"(\/\/.*)"),
-             [](const smatch &match) {}}
-        };
+                                shapes.emplace(match[1], rect);
+                            }},
+                    {regex(R"(ellipse\s+)" + ID + SPACE + POINT + SPACE + NUM + SPACE + NUM + SPACE + COLOR + SPACE + COLOR +
+                           SPACE + NUM),
+                            [&shapes](const smatch &match) {
+                                shared_ptr<CEllipse> circle = make_shared<CEllipse>(
+                                        CPoint(stof(match[2]), stof(match[3])),
+                                        stof(match[4]),
+                                        stof(match[5]),
+                                        make_shared<LineStyle>(Color(match[6]), stof(match[8])),
+                                        make_shared<FillStyle>(Color(match[7])));
 
-    for (const auto& cmd : commandMap)
-    {
+                                shapes.emplace(match[1], circle);
+                            }},
+                    {regex(R"(triangle\s+)" + ID + SPACE + POINT + SPACE + POINT + SPACE + POINT + SPACE +
+                           COLOR + SPACE + COLOR + SPACE + NUM),
+                            [&shapes](const smatch &match) {
+                                shared_ptr<CTriangle> triangle = make_shared<CTriangle>(
+                                        CPoint(stof(match[2]), stof(match[3])),
+                                        CPoint(stof(match[4]), stof(match[5])),
+                                        CPoint(stof(match[6]), stof(match[7])),
+                                        make_shared<LineStyle>(Color(match[8]),
+                                                               stof(match[10])),
+                                        make_shared<FillStyle>(Color(match[9])));
+                                shapes.emplace(match[1], triangle);
+                    }},
+                    {regex(R"(group/s+)" + ID + SPACE + IDS),
+                            [&shapes](const smatch &match) {
+                                std::vector<std::string> shapesToGroup{};
+                                for (int i = 2; i++; i <= match.size()) {
+                                    if (shapes.contains(match[i])) {
+                                        shapesToGroup.push_back(match[i]);
+                                    } else {
+                                        cout << "error: no shape with such id!" << endl;
+                                        return;
+                                    }
+                                }
+                                shared_ptr<CompositeShape> comp = make_shared<CompositeShape>();
+                                for (const string &id: shapesToGroup) {
+                                    comp->AddShape(shapes.at(id));
+                                    shapes.erase(id);
+                                }
+                                shapes.emplace(match[1], comp);
+                            }},
+
+                    {regex(R"(addshape/s+)" + ID + SPACE + ID),
+                            [&shapes](const smatch &match) {
+                                    if (shapes.contains(match[1]) and shapes.contains(match[2])) {
+                                        shapes.at(match[1])->AddShape(shapes.at(match[2]));
+                                        shapes.erase(match[2]);
+                                    } else {
+                                        cout << "error: no shape with such id!" << endl;
+                                    }
+                        }},
+                    {regex(R"(\/\/.*)"),
+                            [](const smatch &match) {}}
+            };
+
+    for (const auto &cmd: commandMap) {
         smatch match;
-        if (regex_match(line, match, cmd.first))
-        {
+        if (regex_match(line, match, cmd.first)) {
             cmd.second(match);
             return;
         }
@@ -72,33 +106,10 @@ void LineProcessor(vector<unique_ptr<ICanvasDrowable>>& shapes, vector<ISolidSha
     cout << "error: invalid command!" << endl;
 }
 
-ISolidShape* GetMaxArea(vector<ISolidShape*> &shapes)
-{
-    auto largestAreaShape = *max_element(shapes.begin(), shapes.end(), [](ISolidShape* a, ISolidShape* b)
-    {
-        return a->GetArea() < b->GetArea();
-    });
-    return largestAreaShape;
-}
 
-ISolidShape* GetMinPerimeter(vector<ISolidShape *> shapes)
-{
-    auto smallestPerimeterShape = *min_element(shapes.begin(), shapes.end(), [](ISolidShape* a, ISolidShape* b)
-    {
-        return a->GetPerimeter() < b->GetPerimeter();
-    });
-    return smallestPerimeterShape;
-}
-
-void PrintShape(const ISolidShape *shape)
-{
-    cout << "Smallest perimeter shape: " << shape->ToString() << endl;
-}
-
-sf::RenderTexture* getTexture(CCanvas &canvas, int width = WIDTH, int height = HEIGHT)
-{
+sf::RenderTexture *getTexture(CCanvas &canvas, int width = WIDTH, int height = HEIGHT) {
     sf::Sprite spriteFromRenderTexture(canvas.GetTexture().getTexture());
-    auto* texture = new sf::RenderTexture;
+    auto *texture = new sf::RenderTexture;
 
     texture->create(width, height);
     texture->setSmooth(false);
@@ -107,9 +118,9 @@ sf::RenderTexture* getTexture(CCanvas &canvas, int width = WIDTH, int height = H
     return texture;
 }
 
-void ReDrawOnWindow(const vector<unique_ptr<ICanvasDrowable>> &shapes, CCanvas &canvas, sf::RenderWindow &window,
-                    sf::View &view, const sf::Sprite &spriteFromTexture, const sf::Event &event)
-{
+void
+ReDrawOnWindow(const std::vector<std::shared_ptr<ICanvasDrowable>> &shapes, CCanvas &canvas, sf::RenderWindow &window,
+               sf::View &view, const sf::Sprite &spriteFromTexture, const sf::Event &event) {
     canvas.DrawShapesOnTexture(shapes);
     sf::Sprite spriteFromTextureWindow(getTexture(canvas, event.size.width, event.size.height)->getTexture());
 
@@ -121,8 +132,7 @@ void ReDrawOnWindow(const vector<unique_ptr<ICanvasDrowable>> &shapes, CCanvas &
     window.display();
 }
 
-void WindowHandler(vector<unique_ptr<ICanvasDrowable>>& shapes)
-{
+void WindowHandler(std::vector<std::shared_ptr<ICanvasDrowable>> &shapes) {
     CCanvas canvas;
     canvas.DrawShapesOnTexture(shapes);
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), TITLE);
@@ -134,47 +144,34 @@ void WindowHandler(vector<unique_ptr<ICanvasDrowable>>& shapes)
     window.draw(spriteFromTexture);
     window.display();
 
-    while (window.isOpen())
-    {
+    while (window.isOpen()) {
         sf::Event event{};
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Resized)
-            {
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Resized) {
                 ReDrawOnWindow(shapes, canvas, window, view, spriteFromTexture, event);
             }
-            if (event.type == sf::Event::Closed)
-            {
+            if (event.type == sf::Event::Closed) {
                 window.close();
             }
         }
     }
 }
 
-void CommandProcessor(istream& str)
-{
-    vector<unique_ptr<ICanvasDrowable>> shapes{};
-    vector<ISolidShape*> solidShapes{};
+void CommandProcessor(istream &str) {
+    map<string, shared_ptr<IShape>> shapes{};
+
 
     string line;
-    while (getline(str,line))
-    {
-        if (line == "render")
-        {
+    while (getline(str, line)) {
+        if (line == "render") {
             break;
         }
-        LineProcessor(shapes, solidShapes, line);
+        LineProcessor(shapes, line);
     }
-    if (solidShapes.empty())
-    {
-        cout << "There is no solid shapes!" << endl;
+    std::vector<std::shared_ptr<ICanvasDrowable>> shapesToDraw;
+    for (const auto &[_, shape]: shapes) {
+        shapesToDraw.push_back(shape);
     }
-    else
-    {
-        PrintShape(GetMaxArea(solidShapes));
-        PrintShape(GetMinPerimeter(solidShapes));
-    }
-
-    WindowHandler(shapes);
+    WindowHandler(shapesToDraw);
 
 }

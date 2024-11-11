@@ -11,14 +11,12 @@ class ISolidShape : public IShape {
 public:
     ~ISolidShape() override = default;
 
-    [[nodiscard]] virtual Color GetFillColor() const = 0;
     [[nodiscard]] virtual float GetArea() const = 0;
     [[nodiscard]] std::string ToString() const override
     {
         std::stringstream ss;
         ss << IShape::ToString();
         ss << "Area: " << GetArea() << std::endl;
-        ss << "Fill color: " << GetFillColor().ToString() << std::endl;
         return ss.str();
     }
 
