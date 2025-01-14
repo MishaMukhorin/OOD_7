@@ -42,7 +42,7 @@ LineProcessor(std::map<std::string, shared_ptr<IShape>> &shapes, const string &l
                             }},
                     {regex(R"(ellipse\s+)" + ID + SPACE + POINT + SPACE + NUM + SPACE + NUM + SPACE + COLOR + SPACE + COLOR +
                            SPACE + NUM),
-                            [&shapes](const smatch &match) {
+                            [&shapes](const smatch &match) { //вынести в фабрику
                                 shared_ptr<CEllipse> circle = make_shared<CEllipse>(
                                         CPoint(stof(match[2]), stof(match[3])),
                                         stof(match[4]),
@@ -55,7 +55,7 @@ LineProcessor(std::map<std::string, shared_ptr<IShape>> &shapes, const string &l
                     {regex(R"(triangle\s+)" + ID + SPACE + POINT + SPACE + POINT + SPACE + POINT + SPACE +
                            COLOR + SPACE + COLOR + SPACE + NUM),
                             [&shapes](const smatch &match) {
-                                shared_ptr<CTriangle> triangle = make_shared<CTriangle>(
+                                shared_ptr<CTriangle> triangle = make_shared<CTriangle>( // заменить на unique
                                         CPoint(stof(match[2]), stof(match[3])),
                                         CPoint(stof(match[4]), stof(match[5])),
                                         CPoint(stof(match[6]), stof(match[7])),

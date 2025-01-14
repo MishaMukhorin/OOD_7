@@ -12,6 +12,7 @@
 #include "CPoint.h"
 #include "LineStyle.h"
 #include "../Interfaces/IShape.h"
+#include "FillStyle.h"
 
 
 #include <memory>
@@ -52,6 +53,21 @@ public:
             canvas->DrawLine(m_p1, m_p2, color,
                              m_strokeStyle->GetLineWidth().value_or(2));
         }
+    }
+
+    void SetStrokeColor(LineStyle style) override
+    {
+        m_strokeStyle->SetColor(Color(style.GetColor()->ToString()));
+    }
+
+    void SetFillColor(FillStyle style) override
+    {
+
+    }
+
+    void SetLineWidth(float width) override
+    {
+        m_strokeStyle->SetLineWidth(width);
     }
 
     static float GetLineLength(CPoint p1, CPoint p2)

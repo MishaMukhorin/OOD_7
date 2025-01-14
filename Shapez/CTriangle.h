@@ -42,6 +42,26 @@ public:
                CLineSegment::GetLineLength(p3, p1);
     }
 
+
+    void SetStrokeColor(LineStyle style) override
+    {
+        m_strokeStyle->SetColor(Color(style.GetColor()->ToString()));
+    }
+
+    void SetFillColor(FillStyle style) override
+    {
+        m_fillStyle->SetColor(Color(style.GetColor()->ToString()));
+    }
+
+    void SetLineWidth(float width) override {
+        if (width > 0)
+        {
+            m_fillStyle->SetLineWidth(width);
+        }
+    }
+
+
+
     [[nodiscard]] std::string ToString() const override
     {
         std::ostringstream ss;

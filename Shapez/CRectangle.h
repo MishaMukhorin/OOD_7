@@ -33,6 +33,25 @@ public:
         return fillStyle;
     }
 
+
+    void SetStrokeColor(LineStyle style) override
+    {
+        strokeStyle->SetColor(Color(style.GetColor()->ToString()));
+    }
+
+    void SetFillColor(FillStyle style) override
+    {
+        fillStyle->SetColor(Color(style.GetColor()->ToString()));
+    }
+
+    void SetLineWidth(float width) override {
+        if (width > 0)
+        {
+            fillStyle->SetLineWidth(width);
+        }
+    }
+
+
     void Draw(ICanvas* canvas) const override {
         canvas->FillPolygon({topLeft,
                              {topLeft.getX(), topLeft.getY() + height},

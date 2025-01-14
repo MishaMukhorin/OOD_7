@@ -67,7 +67,7 @@ public:
         if (!m_strokeStyles.empty())
         {
             auto fillColor = m_fillStyles[0];
-            for (const auto& style: m_fillStyles)
+            for (const auto& style: m_fillStyles) // выделить отдельный компоновщик для стилей
             {
                 if (!((style->GetColor().value_or(Color("0")).ToString() == fillColor->GetColor().value_or(Color("0")).ToString())
                       and (style->GetLineWidth() == fillColor->GetLineWidth())))
@@ -77,20 +77,31 @@ public:
             }
             return fillColor;
         }
-        return nullptr;    }
+        return nullptr;
 
-    void SetStrokeStyle(const std::shared_ptr<IStyle>& style)
+    }
+
+    void SetStrokeColor(LineStyle style) override
     {
         for (auto& s: m_strokeStyles)
         {
-            s = style;
+            s->SetColor(Color(style.GetColor()->ToString()));
         }
     }
-    void SetFillStyle(const std::shared_ptr<IStyle>& style)
+
+    void SetFillColor(FillStyle style) override
     {
         for (auto& s: m_fillStyles)
         {
-            s = style;
+            s->SetColor(Color(style.GetColor()->ToString()));
+        }
+    }
+
+    void SetLineWidth(float width) override
+    {
+        for (auto& s: m_shapes)
+        {
+            s->SetLineWidth(width);
         }
     }
 

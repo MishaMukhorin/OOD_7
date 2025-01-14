@@ -8,6 +8,7 @@
 #include "../Shapez/CColor.h"
 #include "ICanvasDrowable.h"
 #include "IStyle.h"
+#include "../Shapez/FillStyle.h"
 
 
 class IShape: public ICanvasDrowable {
@@ -27,6 +28,10 @@ public:
 
     [[nodiscard]] virtual std::shared_ptr<IStyle> GetStrokeColor() const = 0;
     [[nodiscard]] virtual std::shared_ptr<IStyle> GetFillColor() const = 0;
+
+    virtual void SetStrokeColor(LineStyle style) = 0;
+    virtual void SetLineWidth(float width) = 0;
+    virtual void SetFillColor(FillStyle style) = 0;
 
 protected:
     IShape() = default;
