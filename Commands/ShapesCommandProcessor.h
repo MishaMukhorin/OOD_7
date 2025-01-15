@@ -7,9 +7,12 @@
 #include <string>
 #include <fstream>
 #include "../Shapez/CTriangle.h"
-#include "../Shapez/CCircle.h"
+#include "../Shapez/CEllipse.h"
 #include "../Shapez/CRectangle.h"
 #include "../Shapez/CompositeShape.h"
+#include "../Factory/ShapeFactory.h"
+#include "../Factory/IShapeFactory.h"
+#include "../Factory/ShapeTypeFactory.h"
 #include "../Canvas/CCanvas.h"
 
 #ifndef OOP_4_SHAPESCOMMANDPROCESSOR_H

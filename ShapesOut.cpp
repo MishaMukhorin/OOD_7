@@ -3,6 +3,7 @@
 //
 
 #include "Commands/ShapesCommandProcessor.h"
+#include "Picture/Picture.h"
 
 int main(int argc, char** argv)
 {

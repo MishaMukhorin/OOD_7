@@ -24,7 +24,7 @@ public:
         ss >> m_rgba;
     }
 
-    explicit Color(unsigned int color): m_rgba(color) {} //done конструктор от uint
+    explicit Color(unsigned int color): m_rgba(color) {}
 
     [[nodiscard]] std::string ToString() const
     {

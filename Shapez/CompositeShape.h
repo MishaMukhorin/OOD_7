@@ -8,43 +8,37 @@
 
 #include <vector>
 #include <memory>
-#include "../Interfaces/ISolidShape.h"
 #include "../Interfaces/IStyle.h"
 #include "CColor.h"
+#include "../Interfaces/IShape.h"
 
-class CompositeShape : public ISolidShape {
+class CompositeShape : public IShape {
 public:
+
+    void AddUnresolvedId(const std::string& id)
+    {
+        m_unresolvedIds.emplace_back(id);
+    }
+
+    /// promise to resolve ids
+    std::vector<std::string> getIdsToResolve()
+    {
+        std::vector<std::string> idsToBeResolved = std::move(m_unresolvedIds);
+        for (const auto& id: idsToBeResolved)
+        {
+            m_resolvedIds.emplace_back(id);
+        }
+        return idsToBeResolved;
+    }
 
     void AddShape(const std::shared_ptr<IShape>& shape) override
     {
         m_shapes.push_back(shape);
-        m_fillStyles.push_back(shape->GetFillColor());
-        m_strokeStyles.push_back(shape->GetStrokeColor());
+        m_fillStyles.push_back(shape->GetFillStyle());
+        m_strokeStyles.push_back(shape->GetStrokeStyle());
     }
 
-    [[nodiscard]] float GetPerimeter() const override
-    {
-        float totalPerimeter = 0;
-        for (const auto& shape : m_shapes)
-        {
-            totalPerimeter += shape->GetPerimeter();
-        }
-        return totalPerimeter;
-    }
-
-    [[nodiscard]] float GetArea() const override
-    {
-        float totalArea = 0;
-        for (const auto& shape : m_shapes) {
-            if (auto solidShape = std::dynamic_pointer_cast<ISolidShape>(shape))
-            {
-                totalArea += solidShape->GetArea();
-            }
-        }
-        return totalArea;
-    }
-
-    [[nodiscard]] std::shared_ptr<IStyle> GetStrokeColor() const override
+    [[nodiscard]] std::shared_ptr<IStyle> GetStrokeStyle() const override
     {
         if (!m_strokeStyles.empty())
         {
@@ -62,7 +56,7 @@ public:
         return nullptr;
     }
 
-    [[nodiscard]] std::shared_ptr<IStyle> GetFillColor() const override
+    [[nodiscard]] std::shared_ptr<IStyle> GetFillStyle() const override
     {
         if (!m_strokeStyles.empty())
         {
@@ -79,6 +73,36 @@ public:
         }
         return nullptr;
 
+    }
+
+    [[nodiscard]] std::string GetType() const override
+    {
+        return "Composite";
+    }
+
+    [[nodiscard]] std::unique_ptr<IShape> Clone() const override
+    {
+        return std::make_unique<CompositeShape>(*this);
+    }
+
+    void Move(float x, float y) override
+    {
+        for (const auto& shape: m_shapes)
+        {
+            shape->Move(x, y);
+        }
+    }
+
+    [[nodiscard]] std::string ToString() const override
+    {
+        std::ostringstream ss;
+        ss << "Ids in this group: " << std::endl;
+        for (const auto& id: m_resolvedIds)
+        {
+            ss << " - " << id << std::endl;
+        }
+        ss << IShape::ToString();
+        return ss.str();
     }
 
     void SetStrokeColor(LineStyle style) override
@@ -113,8 +137,14 @@ public:
 
 private:
     std::vector<std::shared_ptr<IShape>> m_shapes;
+
+    //todo выделить компоновщик для стилей
     std::vector<std::shared_ptr<IStyle>> m_strokeStyles;
     std::vector<std::shared_ptr<IStyle>> m_fillStyles;
+
+    std::vector<std::string> m_unresolvedIds;
+    std::vector<std::string> m_resolvedIds;
+
 };
 
 

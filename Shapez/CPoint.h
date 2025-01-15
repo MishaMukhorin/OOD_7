@@ -9,8 +9,10 @@
 class CPoint {
 public:
     CPoint(float x, float y) : x(x), y(y) {}
-    [[nodiscard]] float getX() const { return x; }
-    [[nodiscard]] float getY() const { return y; }
+    [[nodiscard]] float GetX() const { return x; }
+    [[nodiscard]] float GetY() const { return y; }
+    void SetX(float newX) { x = newX; }
+    void SetY(float newY) { y = newY; }
 
 private:
     float x, y;

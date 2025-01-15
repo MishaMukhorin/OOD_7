@@ -18,6 +18,9 @@ LineProcessor(std::map<std::string, shared_ptr<IShape>> &shapes, const string &l
             {
                     {regex(R"(line\s+)" + ID + SPACE + POINT + SPACE + POINT + SPACE + COLOR + SPACE + NUM),
                             [&shapes](const smatch &match) {
+
+                                std::shared_ptr<IShape> newShape = shapeFactory.CreateShape(shapeParameters);
+
                                 shared_ptr<CLineSegment> line =
                                         make_shared<CLineSegment>(CPoint(stof(match[2]), stof(match[3])),
                                                                   CPoint(stof(match[4]), stof(match[5])),

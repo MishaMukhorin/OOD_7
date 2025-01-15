@@ -9,6 +9,7 @@
 #include "ICanvasDrowable.h"
 #include "IStyle.h"
 #include "../Shapez/FillStyle.h"
+#include "../Shapez/LineStyle.h"
 
 
 class IShape: public ICanvasDrowable {
@@ -17,21 +18,33 @@ public:
 
     virtual void AddShape(const std::shared_ptr<IShape>& shape) = 0;
 
-    [[nodiscard]] virtual float GetPerimeter() const = 0;
+    [[nodiscard]] virtual std::string GetType() const = 0;
     [[nodiscard]] virtual std::string ToString() const
     {
+
         std::stringstream ss;
-        ss << "Perimeter: " << GetPerimeter() << std::endl;
-        ss << "Stroke m_color: " << GetStrokeColor()->GetColor()->ToString() << std::endl;
+        ss << "Stroke color: " << GetStrokeStyle()->GetColor()->ToString() << std::endl;
+        if (GetFillStyle() != nullptr)
+        {
+            ss << "Fill color: " << GetFillStyle()->GetColor()->ToString() << std::endl;
+        }
+        ss << "Line Width: " << GetStrokeStyle()->GetLineWidth().value_or(0) << std::endl;
         return ss.str();
     }
 
-    [[nodiscard]] virtual std::shared_ptr<IStyle> GetStrokeColor() const = 0;
-    [[nodiscard]] virtual std::shared_ptr<IStyle> GetFillColor() const = 0;
+    virtual void Move(float x, float y) = 0;
+
+    virtual std::pair<CPoint, CPoint> GetRect() = 0;
+
+    [[nodiscard]] virtual std::shared_ptr<IStyle> GetStrokeStyle() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<IStyle> GetFillStyle() const = 0;
 
     virtual void SetStrokeColor(LineStyle style) = 0;
     virtual void SetLineWidth(float width) = 0;
     virtual void SetFillColor(FillStyle style) = 0;
+
+    [[nodiscard]] virtual std::unique_ptr<IShape> Clone() const = 0;
+
 
 protected:
     IShape() = default;

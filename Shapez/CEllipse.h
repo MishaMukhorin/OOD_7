@@ -7,50 +7,57 @@
 
 #include <cmath>
 #include <utility>
-#include "../Interfaces/ISolidShape.h"
 #include "CPoint.h"
 #include "../Interfaces/IStyle.h"
 #include <memory>
 
-class CEllipse : public ISolidShape {
+class CEllipse : public IShape {
 public:
     CEllipse(const CPoint& center,
              float radiusX,
              float radiusY,
-             std::shared_ptr<IStyle> strokeStyle,
-             std::shared_ptr<IStyle> fillStyle)
+             const LineStyle& strokeStyle,
+             const FillStyle& fillStyle)
             : m_center(center),
               m_radiusX(radiusX),
               m_radiusY(radiusY),
-              m_strokeStyle(std::move(strokeStyle)),
-              m_fillStyle(std::move(fillStyle)) {}
-
-    [[nodiscard]] float GetArea() const override {
-        return M_PI * m_radiusX * m_radiusY;
-    }
+              m_strokeStyle(std::make_shared<LineStyle>(strokeStyle)),
+              m_fillStyle(std::make_shared<FillStyle>(fillStyle))
+              {}
 
     void AddShape(const std::shared_ptr<IShape>& shape) override {};
 
-    [[nodiscard]] float GetPerimeter() const override {
-        // Approximation using Ramanujan's first formula for ellipse perimeter
-        return M_PI * (3 * (m_radiusX + m_radiusY) - std::sqrt((3 * m_radiusX + m_radiusY) * (m_radiusX + 3 * m_radiusY)));
+    [[nodiscard]] std::string GetType() const override
+    {
+        return "Ellipse";
     }
 
     [[nodiscard]] std::string ToString() const override
     {
         std::stringstream ss;
-        ss << "Ellipse: Center=(" << m_center.getX() << ", " << m_center.getY()
+        ss << "Ellipse: Center=(" << m_center.GetX() << ", " << m_center.GetY()
            << "), radiusX=" << m_radiusX << ", radiusY=" << m_radiusY << std::endl;
-        ss << ISolidShape::ToString();
+        ss << IShape::ToString();
         return ss.str();
     }
 
-    [[nodiscard]] std::shared_ptr<IStyle> GetStrokeColor() const override
+    std::pair<CPoint, CPoint> GetRect() override
+    {
+        CPoint topLeft(0, 0), lowRight(0, 0);
+        topLeft.SetX(m_center.GetX() - m_radiusX);
+        topLeft.SetY(m_center.GetY() - m_radiusY);
+        lowRight.SetX(m_center.GetX() + m_radiusX);
+        lowRight.SetY(m_center.GetY() + m_radiusY);
+
+        return {topLeft, lowRight};
+    }
+
+    [[nodiscard]] std::shared_ptr<IStyle> GetStrokeStyle() const override
     {
         return m_strokeStyle;
     }
 
-    [[nodiscard]] std::shared_ptr<IStyle> GetFillColor() const override
+    [[nodiscard]] std::shared_ptr<IStyle> GetFillStyle() const override
     {
         return m_fillStyle;
     }
@@ -72,6 +79,11 @@ public:
         }
     }
 
+    void Move(float x, float y) override
+    {
+        m_center.SetX(m_center.GetX() + x);
+        m_center.SetY(m_center.GetY() + y);
+    }
 
     void Draw(ICanvas* canvas) const override
     {
@@ -82,7 +94,10 @@ public:
         canvas->FillEllipse(m_center, m_radiusX, m_radiusY, m_fillStyle->GetColor().value_or(Color("0")));
     }
 
-
+    [[nodiscard]] std::unique_ptr<IShape> Clone() const override
+    {
+        return std::make_unique<CEllipse>(*this);
+    }
 
 private:
     CPoint m_center;

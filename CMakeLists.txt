@@ -22,6 +22,8 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(ood7 ShapesOut.cpp
         Commands/ShapesCommandProcessor.cpp
+        Factory/ShapeTypeFactory.cpp
+        Picture/Picture.cpp
         Canvas/CCanvas.cpp)
 
 target_link_libraries(ood7 PRIVATE sfml-graphics)

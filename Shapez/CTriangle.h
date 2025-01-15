@@ -9,38 +9,22 @@
 #include <utility>
 #include "CPoint.h"
 #include "CLineSegment.h"
-#include "../Interfaces/ISolidShape.h"
 #include <memory>
 
-class CTriangle : public ISolidShape
+class CTriangle : public IShape
 {
 public:
     CTriangle(const CPoint& p1,
               const CPoint& p2,
               const CPoint& p3,
-              std::shared_ptr<IStyle> strokeStyle,
-              std::shared_ptr<IStyle> fillStyle)
-            : p1(p1),
-              p2(p2),
-              p3(p3),
-              m_strokeStyle(std::move(strokeStyle)),
-              m_fillStyle(std::move(fillStyle)) {}
+              const LineStyle& strokeStyle,
+              const FillStyle& fillStyle)
+            : m_p1(p1),
+              m_p2(p2),
+              m_p3(p3),
+              m_strokeStyle(std::make_shared<LineStyle>(strokeStyle)),
+              m_fillStyle(std::make_shared<FillStyle>(fillStyle)) {}
 
-    [[nodiscard]] float GetArea() const override
-    {
-        float a = CLineSegment::GetLineLength(p1, p2);
-        float b = CLineSegment::GetLineLength(p2, p3);
-        float c = CLineSegment::GetLineLength(p3, p1);
-        float p = (a + b + c) / 2;
-        return float(std::sqrt(p * (p - a) * (p - b) * (p - c)));
-    }
-
-    [[nodiscard]] float GetPerimeter() const override
-    {
-        return CLineSegment::GetLineLength(p1, p2) +
-               CLineSegment::GetLineLength(p2, p3) +
-               CLineSegment::GetLineLength(p3, p1);
-    }
 
 
     void SetStrokeColor(LineStyle style) override
@@ -60,22 +44,40 @@ public:
         }
     }
 
+    [[nodiscard]] std::string GetType() const override
+    {
+        return "Triangle";
+    }
 
+    void Move(float x, float y) override
+    {
+        m_p1.SetX(m_p1.GetX() + x);
+        m_p1.SetY(m_p1.GetY() + y);
+        m_p2.SetX(m_p2.GetX() + x);
+        m_p2.SetY(m_p2.GetY() + y);
+        m_p3.SetX(m_p3.GetX() + x);
+        m_p3.SetY(m_p3.GetY() + y);
+    }
+
+    [[nodiscard]] std::unique_ptr<IShape> Clone() const override
+    {
+        return std::make_unique<CTriangle>(*this);
+    }
 
     [[nodiscard]] std::string ToString() const override
     {
         std::ostringstream ss;
-        ss << "Triangle: (" << p1.getX() << ", " << p1.getY() << "), (" << p2.getX() << ", " << p2.getY() << "), (" << p3.getX() << ", " << p3.getY() << ")";
-        ss << ISolidShape::ToString();
+        ss << "Triangle: (" << m_p1.GetX() << ", " << m_p1.GetY() << "), (" << m_p2.GetX() << ", " << m_p2.GetY() << "), (" << m_p3.GetX() << ", " << m_p3.GetY() << ")";
+        ss << IShape::ToString();
         return ss.str();
     }
 
-    [[nodiscard]] std::shared_ptr<IStyle> GetStrokeColor() const override
+    [[nodiscard]] std::shared_ptr<IStyle> GetStrokeStyle() const override
     {
         return m_strokeStyle ;
     }
 
-    [[nodiscard]] std::shared_ptr<IStyle> GetFillColor() const override
+    [[nodiscard]] std::shared_ptr<IStyle> GetFillStyle() const override
     {
         return m_fillStyle ;
     }
@@ -86,7 +88,7 @@ public:
         if (m_fillStyle)
         {
             Color fillColor = m_fillStyle->GetColor().value_or(Color("0"));
-            canvas->FillPolygon({p1, p2, p3}, fillColor);
+            canvas->FillPolygon({m_p1, m_p2, m_p3}, fillColor);
         }
 
         // Draw each line of the triangle with the stroke color if enabled
@@ -94,18 +96,18 @@ public:
         {
             Color strokeColor = m_strokeStyle->GetColor().value_or(Color("0"));
             float strokeWidth = m_strokeStyle->GetLineWidth().value_or(2);
-            canvas->DrawLine(p1, p2, strokeColor, strokeWidth);
-            canvas->DrawLine(p2, p3, strokeColor, strokeWidth);
-            canvas->DrawLine(p3, p1, strokeColor, strokeWidth);
+            canvas->DrawLine(m_p1, m_p2, strokeColor, strokeWidth);
+            canvas->DrawLine(m_p2, m_p3, strokeColor, strokeWidth);
+            canvas->DrawLine(m_p3, m_p1, strokeColor, strokeWidth);
         }
     }
 
     void AddShape(const std::shared_ptr<IShape>& shape) override {};
 
 private:
-    CPoint p1, p2, p3;
-    std::shared_ptr<IStyle> m_strokeStyle; // Using shared pointer to IStyle for stroke style
-    std::shared_ptr<IStyle> m_fillStyle;   // Using shared pointer to IStyle for fill style
+    CPoint m_p1, m_p2, m_p3;
+    std::shared_ptr<IStyle> m_strokeStyle;
+    std::shared_ptr<IStyle> m_fillStyle;
 };
 
 
